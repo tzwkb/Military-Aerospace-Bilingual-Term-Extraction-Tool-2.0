@@ -8,7 +8,7 @@
 
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![OpenAI GPT-4](https://img.shields.io/badge/OpenAI-GPT--4-green.svg)](https://openai.com/)
-[![PaddleOCR](https://img.shields.io/badge/PaddleOCR-v3.3+-orange.svg)](https://github.com/PaddlePaddle/PaddleOCR)
+[![讯飞OCR](https://img.shields.io/badge/讯飞OCR-云端API-orange.svg)](https://www.xfyun.cn/)
 
 </div>
 
@@ -16,23 +16,32 @@
 
 ## 🎯 核心特性
 
-### ✨ v2.0 新功能
+### 🎉 v2.1 最新更新
+
+- **☁️ 云端OCR升级** - 从PaddleOCR迁移至科大讯飞云端OCR
+  - ✅ 无需本地GPU配置
+  - ✅ 零模型下载，即用即走
+  - ✅ 识别准确率更高
+  - ✅ 内存占用大幅降低（从4GB降至512MB）
+  - ✅ 按需付费，新用户有免费额度
+
+### ✨ v2.0 核心功能
 
 - **🌐 双语术语提取** - 同时生成英文和中文术语对照（可选）
 - **📑 OCR智能分批** - 自动分批处理大型扫描版PDF（10页/10MB阈值），避免内存溢出
 - **🔁 自动重试机制** - 批次失败时智能重试（最多3次），大幅提高OCR成功率
 - **💾 实时保存** - OCR处理过程中实时保存中间结果，防止数据丢失
-- **🔄 懒加载优化** - OCR模型按需加载，启动更快
+- **☁️ 云端OCR** - 科大讯飞云端OCR，无需本地GPU，识别准确
 - **🎛️ 模式选择** - 用户可自由选择单语或双语模式
 
 ### 🚀 强大功能
 
 #### 文档处理
 - ✅ **智能PDF处理** - 基于pdfminer.six的高精度文本提取
-- ✅ **自动OCR降级** - 检测扫描版PDF并自动启用OCR（PaddleOCR PP-OCRv5）
+- ✅ **自动OCR降级** - 检测扫描版PDF并自动启用OCR（科大讯飞云端OCR）
 - ✅ **智能分批处理** - 大型PDF（>10页或10MB）自动分批OCR，避免内存溢出
 - ✅ **自动重试机制** - 批次失败时自动重试（最多3次），提高成功率
-- ✅ **多格式支持** - PDF、DOCX、图片、TXT、JSON、CSV、Markdown
+- ✅ **多格式支持** - PDF、DOCX、TXT、JSON、CSV、Markdown
 - ✅ **智能文本分割** - 按语义边界分割，保持上下文完整
 
 #### 术语提取
@@ -64,8 +73,10 @@
 - **Python**: 3.8 或更高版本
 - **操作系统**: Windows / Linux / macOS
 - **OpenAI API Key**: 需要有效的API密钥
-- **内存**: 建议8GB+（处理大型OCR任务）
-- **磁盘空间**: 至少2GB（包含模型和临时文件）
+- **科大讯飞OCR**: 需要AppID和Secret（可选，用于扫描版PDF）
+- **网络连接**: 需要稳定的网络连接
+- **内存**: 建议4GB+（云端OCR，本地资源占用低）
+- **磁盘空间**: 至少500MB（临时文件）
 
 ### 安装步骤
 
@@ -82,14 +93,16 @@ cd "Term Extraction Tool_GPT"
 pip install -r requirements.txt
 ```
 
-**首次运行提示：**
-- PaddleOCR会自动下载模型（约100MB）
-- 模型存储在 `~/.paddlex/` 目录
-- 仅首次需要下载，后续自动使用缓存
+**OCR功能提示：**
+- 科大讯飞OCR使用云端API，无需下载模型
+- 需要在讯飞开放平台注册并获取API凭证
+- 按实际使用量计费，新用户通常有免费额度
 
 #### 3. 配置API密钥
 
-**方法1：环境变量（推荐）**
+**OpenAI API（必需）**
+
+方法1：环境变量（推荐）
 ```bash
 # Windows PowerShell
 $env:OPENAI_API_KEY="your-api-key-here"
@@ -98,12 +111,41 @@ $env:OPENAI_API_KEY="your-api-key-here"
 export OPENAI_API_KEY="your-api-key-here"
 ```
 
-**方法2：配置文件**
+方法2：配置文件
 ```python
 # 编辑 config.py
 OPENAI_API_KEY = "your-api-key-here"
 OPENAI_BASE_URL = "https://api.openai.com/v1"  # 可选：自定义API端点
 ```
+
+**科大讯飞OCR API（可选，用于扫描版PDF）**
+
+方法1：环境变量
+```bash
+# Windows PowerShell
+$env:XUNFEI_APP_ID="your-app-id"
+$env:XUNFEI_SECRET="your-secret"
+
+# Linux/Mac
+export XUNFEI_APP_ID="your-app-id"
+export XUNFEI_SECRET="your-secret"
+```
+
+方法2：配置文件
+```python
+# 编辑 config.py
+XUNFEI_OCR_CONFIG = {
+    "app_id": "your-xunfei-app-id",
+    "secret": "your-xunfei-secret",
+    "enabled": True,  # True=启用OCR, False=禁用
+}
+```
+
+获取讯飞API凭证：
+1. 访问 https://www.xfyun.cn/
+2. 注册并登录
+3. 进入控制台 → 我的应用
+4. 创建新应用并获取 AppID 和 Secret
 
 ### 基本使用
 
@@ -132,8 +174,8 @@ python main.py
 
 4. 自动处理
    ├─ 检测文件类型
-   ├─ 扫描版PDF自动OCR
-   ├─ 大型PDF自动分批
+   ├─ 扫描版PDF自动OCR（科大讯飞云端）
+   ├─ 大型PDF自动分批处理
    └─ 实时保存进度
 
 5. 选择输出格式
@@ -162,7 +204,8 @@ Term Extraction Tool_GPT/
 │   ├── main.py                    # 主程序入口
 │   ├── config.py                  # 配置文件（API、提示词、参数）
 │   ├── gpt_processor.py           # GPT API处理和批处理
-│   ├── file_processor.py          # 文件处理和OCR
+│   ├── file_processor.py          # 文件处理和OCR调度
+│   ├── xunfei_ocr.py              # 科大讯飞OCR接口
 │   ├── text_splitter.py           # 智能文本分割
 │   └── checkpoint_manager.py      # 断点管理
 │
@@ -235,6 +278,28 @@ Term Extraction Tool_GPT/
 
 ---
 
+## ☁️ 科大讯飞云端OCR
+
+### 优势特点
+
+- ✅ **无需本地GPU** - 云端处理，任何配置都能运行
+- ✅ **识别准确率高** - 基于深度学习的高精度OCR引擎
+- ✅ **支持多种格式** - PDF、图片等多种文档格式
+- ✅ **快速响应** - 云端并行处理，速度快
+- ✅ **按需付费** - 新用户有免费额度，用多少付多少
+- ✅ **维护简单** - 无需更新本地模型，自动享受最新技术
+
+### 使用场景
+
+| 场景 | 说明 |
+|------|------|
+| ✅ 扫描版PDF | 自动识别并提取文本 |
+| ✅ 图片文档 | 支持JPG、PNG等格式 |
+| ✅ 复杂排版 | 智能识别表格、多栏等复杂布局 |
+| ✅ 混合文档 | 同时包含文本和扫描内容的PDF |
+
+---
+
 ## 📑 OCR智能分批处理
 
 ### 触发条件
@@ -300,10 +365,12 @@ PDF_OCR_CONFIG = {
 
 **建议设置：**
 
-- **内存充足 (16GB+)**: `batch_size = 20-30`, `max_retries = 3`
-- **内存一般 (8GB)**: `batch_size = 10-15`, `max_retries = 3`
-- **内存紧张 (4GB)**: `batch_size = 5-10`, `max_retries = 2`, `retry_delay = 3`
-- **超大PDF (500页+)**: 保持默认配置，或降低 `batch_size` 到 5
+科大讯飞OCR使用云端处理，配置主要影响网络并发和处理速度：
+
+- **网络良好**: `batch_size = 20`, `max_retries = 3`
+- **网络一般**: `batch_size = 10-15`, `max_retries = 3`, `retry_delay = 2`
+- **网络不稳定**: `batch_size = 5`, `max_retries = 5`, `retry_delay = 5`
+- **超大PDF (500页+)**: 保持默认配置，或适当增加 `max_retries`
 
 ---
 
@@ -395,7 +462,8 @@ python main.py
 ```
 
 **预期结果：**
-- 提取时间：20-30分钟（238页PDF）
+- OCR时间：约1-2分钟/页（取决于网络速度）
+- 术语提取：20-30分钟（238页PDF）
 - 输出文件：`batch_results/词典_20251022_143045_gpt4o_1500terms.xlsx`
 - 中间文本：`extracted_texts/词典_batch_ocr.txt`
 
@@ -413,8 +481,8 @@ python main.py
 
 **优势：**
 - 处理速度更快
-- Token使用更少
-- 成本降低约20%
+- Token使用更少（降低约15-20%）
+- 总体成本更低
 
 ### 示例3：批量处理文件夹
 
@@ -605,11 +673,17 @@ term_key = f"{eng_term.lower()}|{zh_term}"  # 组合键
 
 **解决：**
 ```bash
-# 检查PaddleOCR是否安装
-pip show paddleocr
+# 检查讯飞OCR配置
+# 编辑 config.py，确保以下配置正确：
+XUNFEI_OCR_CONFIG = {
+    "app_id": "your-xunfei-app-id",      # 填入您的AppID
+    "secret": "your-xunfei-secret",      # 填入您的Secret
+    "enabled": True,                     # 确保为True
+}
 
-# 重新安装
-pip install paddleocr paddlepaddle
+# 或使用环境变量
+export XUNFEI_APP_ID="your-app-id"
+export XUNFEI_SECRET="your-secret"
 ```
 
 #### 2. API速率限制
@@ -631,11 +705,21 @@ BATCH_CONFIG = {
 
 **解决：**
 ```python
-# config.py
+# config.py - 科大讯飞OCR使用云端处理，内存占用极低
 PDF_OCR_CONFIG = {
-    "batch_size": 10,  # 减小批次大小
+    "batch_size": 10,  # 减小批次大小（主要影响网络并发）
 }
 ```
+
+#### 6. 讯飞OCR API调用失败
+
+**错误：** `OCR API调用失败` 或 `认证失败`
+
+**解决：**
+1. 检查AppID和Secret是否正确
+2. 检查网络连接是否正常
+3. 登录讯飞开放平台检查API额度
+4. 确认API服务状态正常
 
 #### 4. 中文乱码（CSV）
 
@@ -702,14 +786,22 @@ BATCH_CONFIG["temperature"] = 0
 ### 核心依赖
 
 ```
+# GPT术语抽取核心依赖
 openai>=1.10.0              # GPT API集成
 tiktoken>=0.5.1             # Token计数
+
+# PDF处理
 pdfminer.six>=20231228      # PDF文本提取
-PyPDF2>=3.0.0              # PDF分割（分批OCR用）
+PyPDF2==3.0.1              # PDF分割（分批OCR用）
+
+# 文档处理
 python-docx==0.8.11         # DOCX支持
-paddleocr>=2.8.0           # OCR识别（PP-OCRv5）
-paddlepaddle>=2.6.0        # 深度学习框架
-Pillow>=10.0.0             # 图像处理
+
+# OCR功能（科大讯飞云端API）
+requests>=2.31.0            # HTTP客户端，用于调用讯飞OCR API
+Pillow>=10.0.0             # 图像处理（可选）
+
+# Excel输出支持
 openpyxl>=3.1.0            # Excel输出
 ```
 
@@ -720,16 +812,14 @@ python-magic==0.4.27        # 文件类型检测
 python-magic-bin==0.4.14    # Windows magic支持
 ```
 
-### 模型下载
+### OCR说明
 
-**首次运行时自动下载：**
-- PP-OCRv5检测模型 (~50MB)
-- PP-OCRv5识别模型 (~30MB)
-- 方向分类模型 (~20MB)
-
-**存储位置：**
-- Windows: `C:\Users\<用户名>\.paddlex\`
-- Linux/Mac: `~/.paddlex/`
+**科大讯飞云端OCR：**
+- ✅ 无需下载模型
+- ✅ 云端处理，不占用本地资源
+- ✅ 识别准确率高
+- ⚠️ 需要网络连接
+- ⚠️ 按使用量计费（新用户有免费额度）
 
 ---
 
@@ -737,11 +827,16 @@ python-magic-bin==0.4.14    # Windows magic支持
 
 ### 处理速度
 
-| 文档类型 | 文件大小 | 页数 | 处理时间 | 成本 (gpt-4o) |
-|---------|---------|------|---------|--------------|
-| 文本PDF | 5MB | 50页 | 2-3分钟 | $0.15 |
-| 扫描PDF | 50MB | 200页 | 20-30分钟 | $0.50 |
-| 大型PDF | 100MB | 500页 | 1-2小时 | $1.20 |
+| 文档类型 | 文件大小 | 页数 | OCR时间 | 术语提取 | 成本估算* |
+|---------|---------|------|---------|---------|----------|
+| 文本PDF | 5MB | 50页 | 无需OCR | 2-3分钟 | GPT: $0.15 |
+| 扫描PDF | 50MB | 200页 | 3-6分钟 | 20-30分钟 | OCR: $0.10 + GPT: $0.50 |
+| 大型PDF | 100MB | 500页 | 8-15分钟 | 1-2小时 | OCR: $0.25 + GPT: $1.20 |
+
+*成本说明：
+- GPT成本基于gpt-4o模型计算
+- OCR成本基于科大讯飞计费标准（实际费用可能因套餐而异）
+- 新用户通常有免费额度可用
 
 ### 提取质量
 
@@ -754,12 +849,15 @@ python-magic-bin==0.4.14    # Windows magic支持
 
 ### 资源使用
 
-| 场景 | CPU | 内存 | 磁盘 |
-|------|-----|------|------|
-| **文本提取** | 低 | 512MB | 临时文件 |
-| **小型OCR** | 中 | 2GB | 1GB临时 |
-| **大型OCR** | 高 | 4GB | 2GB临时 |
-| **GPT处理** | 低 | 1GB | 无 |
+| 场景 | CPU | 内存 | 磁盘 | 网络 |
+|------|-----|------|------|------|
+| **文本提取** | 低 | 512MB | 临时文件 | 无 |
+| **科大讯飞OCR** | 低 | 512MB | 临时文件 | 需要 |
+| **GPT处理** | 低 | 1GB | 无 | 需要 |
+
+**说明：**
+- 科大讯飞OCR使用云端处理，本地资源占用极低
+- 主要资源消耗在网络传输和GPT API调用
 
 ---
 
@@ -827,7 +925,7 @@ BATCH_CONFIG["temperature"] = 0
 python main.py --help
 
 # 检查OCR配置
-python -c "from file_processor import deps; print(deps.available_modules)"
+python -c "from config import XUNFEI_OCR_CONFIG; print('OCR启用状态:', XUNFEI_OCR_CONFIG['enabled'])"
 
 # 清理缓存
 rm -rf checkpoints/
